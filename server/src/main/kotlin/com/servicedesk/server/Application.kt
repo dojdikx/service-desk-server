@@ -1,6 +1,8 @@
 package com.servicedesk.server
 
 import com.servicedesk.server.config.AppConfig
+import com.servicedesk.server.db.DatabaseFactory
+import com.servicedesk.server.plugins.configureFlyway
 import com.servicedesk.server.plugins.configureMonitoring
 import com.servicedesk.server.plugins.configureRouting
 import io.ktor.http.HttpHeaders
@@ -15,12 +17,14 @@ import io.ktor.server.plugins.cors.routing.CORS
 import kotlinx.serialization.json.Json
 
 fun main() {
-    embeddedServer(
+    val server = embeddedServer(
         Netty,
         port = AppConfig.port,
         host = AppConfig.host,
         module = Application::module,
-    ).start(wait = true)
+    )
+    server.start(wait = true)
+    runCatching { DatabaseFactory.close() }
 }
 
 fun Application.module() {
@@ -46,6 +50,8 @@ fun Application.module() {
         allowMethod(HttpMethod.Delete)
     }
 
+    configureFlyway()
+    DatabaseFactory.init()
     configureMonitoring()
     configureRouting()
 }

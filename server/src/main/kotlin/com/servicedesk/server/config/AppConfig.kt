@@ -19,4 +19,8 @@ object AppConfig {
 
     val databasePassword: String =
         System.getenv("DATABASE_PASSWORD") ?: System.getenv("DB_PASSWORD") ?: "servicedesk_password"
+
+    val jdbcCredentials: Triple<String, String, String> by lazy {
+        Triple(databaseUrl, databaseUser, databasePassword)
+    }
 }
