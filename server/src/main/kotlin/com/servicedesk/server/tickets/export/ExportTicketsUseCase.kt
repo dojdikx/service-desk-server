@@ -16,7 +16,7 @@ class ExportTicketsUseCase(
 
         val tickets = repository.findForExport(start, end, channels)
         val channelsSuffix = channels.joinToString("_")
-        val fileName = "BambuLab_export_${channelsSuffix}_с_${start}_по_${end}.xlsx"
+        val fileName = "tickets_export_${channelsSuffix}_с_${start}_по_${end}.xlsx"
         val path = storage.targetPath(fileName)
         TicketsExportExcelGenerator.write(tickets, path)
         return TicketsExportResponse(excelPath = "/api/analytics/files/$fileName")
