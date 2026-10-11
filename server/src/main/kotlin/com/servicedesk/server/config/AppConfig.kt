@@ -23,4 +23,6 @@ object AppConfig {
     val jdbcCredentials: Triple<String, String, String> by lazy {
         Triple(databaseUrl, databaseUser, databasePassword)
     }
+
+    val jwtSecret: String = System.getenv("JWT_SECRET") ?: "service-desk-dev-secret"
 }
