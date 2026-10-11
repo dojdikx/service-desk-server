@@ -1,0 +1,89 @@
+{
+  "defaultStatus": "Первичный контакт",
+  "columns": [
+    {
+      "id": "primary_contact",
+      "status": "Первичный контакт",
+      "color": "#f59e0b",
+      "isClosed": false
+    },
+    {
+      "id": "offline_repair",
+      "status": "Оффлайн ремонт",
+      "color": "#8b5cf6",
+      "isClosed": false
+    },
+    {
+      "id": "paid_requests",
+      "status": "Платные обращения",
+      "color": "#ec4899",
+      "isClosed": false
+    },
+    {
+      "id": "serial_check",
+      "status": "Проверка серийного номера",
+      "color": "#06b6d4",
+      "isClosed": false
+    },
+    {
+      "id": "in_work_awaiting_reply",
+      "status": "В работе ожидаю ответа",
+      "color": "#3b82f6",
+      "isClosed": false
+    },
+    {
+      "id": "in_work_non_warranty",
+      "status": "В работе не гарантия",
+      "color": "#6366f1",
+      "isClosed": false
+    },
+    {
+      "id": "awaiting_parts",
+      "status": "Ожидают запчасти",
+      "color": "#f97316",
+      "isClosed": false
+    },
+    {
+      "id": "awaiting_address",
+      "status": "Ждем адрес",
+      "color": "#14b8a6",
+      "isClosed": false
+    },
+    {
+      "id": "awaiting_shipment",
+      "status": "Ждут отправления",
+      "color": "#0ea5e9",
+      "isClosed": false
+    },
+    {
+      "id": "shipped",
+      "status": "Отправили",
+      "color": "#22c55e",
+      "isClosed": false
+    },
+    {
+      "id": "completed",
+      "status": "Завершенные",
+      "color": "#10b981",
+      "isClosed": true
+    },
+    {
+      "id": "closed",
+      "status": "Закрытые",
+      "color": "#64748b",
+      "isClosed": true
+    },
+    {
+      "id": "successfully_resolved",
+      "status": "Успешно реализовано",
+      "color": "#059669",
+      "isClosed": true
+    },
+    {
+      "id": "closed_unresolved",
+      "status": "Закрыто и не реализовано",
+      "color": "#ef4444",
+      "isClosed": true
+    }
+  ]
+}
