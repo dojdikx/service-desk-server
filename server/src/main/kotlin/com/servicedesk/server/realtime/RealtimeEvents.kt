@@ -12,6 +12,7 @@ data class RealtimeEvent(
     val message: MessageDto? = null,
     val messageId: Int? = null,
     val deliveryStatus: String? = null,
+    val deliveryError: String? = null,
     val unreadCount: Int? = null,
 )
 

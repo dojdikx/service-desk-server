@@ -20,7 +20,18 @@ class DefaultClientMessengerGateway(
         if (trimmed.isEmpty() && !payload.media.hasMedia()) return
         scope.launch {
             delay(300 + Random.nextLong(0, 400))
-            messageRepository.setDeliveryStatus(payload.messageId, "delivered")
+            val deliveryFailure = deliveryFailureReason(payload)
+            if (deliveryFailure != null) {
+                messageRepository.setDeliveryStatus(payload.messageId, "failed", deliveryFailure)
+                realtimeNotifier.onMessageDeliveryUpdated(
+                    payload.ticketId,
+                    payload.messageId,
+                    "failed",
+                    deliveryFailure,
+                )
+                return@launch
+            }
+            messageRepository.setDeliveryStatus(payload.messageId, "delivered", null)
             realtimeNotifier.onMessageDeliveryUpdated(payload.ticketId, payload.messageId, "delivered")
             if (Random.nextFloat() < 0.08f) return@launch
             delay(1200 + Random.nextLong(0, 2800))
@@ -53,5 +64,18 @@ class DefaultClientMessengerGateway(
                 realtimeNotifier.onMessageCreated(payload.ticketId, created)
             }
         }
+    }
+
+    private fun deliveryFailureReason(payload: StaffOutboundPayload): String? {
+        if (payload.media.mediaType == "video") {
+            return "Не удалось доставить видео в канал клиента."
+        }
+        if (payload.media.hasMedia() && Random.nextFloat() < 0.12f) {
+            return "Вложение не доставлено. Клиенту отправлено пояснение."
+        }
+        if (Random.nextFloat() < 0.04f) {
+            return "Временная ошибка канала связи."
+        }
+        return null
     }
 }

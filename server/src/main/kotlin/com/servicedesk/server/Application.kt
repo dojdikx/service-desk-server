@@ -16,6 +16,7 @@ import com.servicedesk.server.messages.GetTicketMessagesPreviewUseCase
 import com.servicedesk.server.messages.ListTicketDialogsUseCase
 import com.servicedesk.server.messages.MarkTicketReadUseCase
 import com.servicedesk.server.messages.DefaultClientMessengerGateway
+import com.servicedesk.server.messages.RetryMessageUseCase
 import com.servicedesk.server.messages.SendTicketMessageUseCase
 import com.servicedesk.server.media.MediaStorage
 import com.servicedesk.server.media.configureMediaRoutes
@@ -123,6 +124,12 @@ fun Application.module() {
         previewUseCase = GetTicketMessagesPreviewUseCase(ticketRepository, messageRepository),
         beforeUseCase = GetTicketMessagesBeforeUseCase(ticketRepository, messageRepository),
         sendUseCase = SendTicketMessageUseCase(
+            ticketRepository,
+            messageRepository,
+            clientMessengerGateway,
+            realtimeNotifier,
+        ),
+        retryUseCase = RetryMessageUseCase(
             ticketRepository,
             messageRepository,
             clientMessengerGateway,

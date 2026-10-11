@@ -21,7 +21,12 @@ class RealtimeNotifier(
         publishDialogActivity(ticketId)
     }
 
-    suspend fun onMessageDeliveryUpdated(ticketId: Int, messageId: Int, deliveryStatus: String) {
+    suspend fun onMessageDeliveryUpdated(
+        ticketId: Int,
+        messageId: Int,
+        deliveryStatus: String,
+        deliveryError: String? = null,
+    ) {
         broadcaster.broadcastTicket(
             ticketId,
             RealtimeEvent(
@@ -29,6 +34,7 @@ class RealtimeNotifier(
                 ticketId = ticketId,
                 messageId = messageId,
                 deliveryStatus = deliveryStatus,
+                deliveryError = deliveryError,
             ),
         )
     }

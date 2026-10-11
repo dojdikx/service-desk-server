@@ -20,6 +20,7 @@ fun Application.configureMessageRoutes(
     previewUseCase: GetTicketMessagesPreviewUseCase,
     beforeUseCase: GetTicketMessagesBeforeUseCase,
     sendUseCase: SendTicketMessageUseCase,
+    retryUseCase: RetryMessageUseCase,
     dialogsUseCase: ListTicketDialogsUseCase,
 ) {
     routing {
@@ -40,6 +41,20 @@ fun Application.configureMessageRoutes(
                         call.respond(HttpStatusCode.Forbidden, mapOf("code" to "FORBIDDEN"))
                     } catch (_: EmptyMessageException) {
                         call.respond(HttpStatusCode.BadRequest, mapOf("code" to "EMPTY_MESSAGE"))
+                    }
+                }
+                post("/{messageId}/retry") {
+                    val session = call.staffSession() ?: return@post call.respond(HttpStatusCode.Unauthorized)
+                    val messageId = call.parameters["messageId"]?.toIntOrNull()
+                        ?: return@post call.respond(HttpStatusCode.BadRequest)
+                    try {
+                        call.respond(retryUseCase.execute(messageId, session))
+                    } catch (_: TicketNotFoundException) {
+                        call.respond(HttpStatusCode.NotFound, mapOf("code" to "MESSAGE_NOT_FOUND"))
+                    } catch (_: TicketAccessDeniedException) {
+                        call.respond(HttpStatusCode.Forbidden, mapOf("code" to "FORBIDDEN"))
+                    } catch (_: MessageRetryNotAllowedException) {
+                        call.respond(HttpStatusCode.BadRequest, mapOf("code" to "RETRY_NOT_ALLOWED"))
                     }
                 }
                 get("/ticket/{ticketId}/preview") {

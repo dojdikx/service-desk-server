@@ -64,6 +64,7 @@ docker exec -it service-desk-db psql -U servicedesk_user -d servicedesk -c "\dt"
 - `POST /api/tickets/{id}/read` — отметить диалог прочитанным
 - `GET /api/messages/tickets` — id заявок с перепиской
 - `GET /api/messages/ticket/{id}/preview`, `GET /api/messages/ticket/{id}/history?before_id=`, `POST /api/messages/send` (текст и/или медиа)
+- `POST /api/messages/{messageId}/retry` — повтор отправки при статусе `failed`
 - `POST /api/media/upload` (multipart), `GET /api/media/{storageKey}` — вложения чата
 - `WS /api/ws/tickets/{id}?token=<jwt>` — события чата (`message.new`, `message.delivery`)
 - `WS /api/ws/staff?token=<jwt>` — активность диалогов (`dialog.activity`, счётчик непрочитанных)

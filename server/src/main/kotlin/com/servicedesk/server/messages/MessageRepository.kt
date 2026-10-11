@@ -36,7 +36,7 @@ interface MessageRepository {
     suspend fun unreadCount(staffId: Int, ticketId: Int): Int
     suspend fun ticketsWithMessages(): List<Int>
     suspend fun lastMessageText(ticketId: Int): String?
-    suspend fun setDeliveryStatus(messageId: Int, status: String)
+    suspend fun setDeliveryStatus(messageId: Int, status: String, deliveryError: String? = null)
     suspend fun findById(messageId: Int): MessageDto?
 
     suspend fun insertUserMessage(
@@ -174,11 +174,11 @@ class ExposedMessageRepository : MessageRepository {
                 ?.toDto()
         }
 
-    override suspend fun setDeliveryStatus(messageId: Int, status: String) {
+    override suspend fun setDeliveryStatus(messageId: Int, status: String, deliveryError: String?) {
         newSuspendedTransaction(Dispatchers.IO) {
             MessagesTable.update({ MessagesTable.id eq messageId }) {
-                it[deliveryStatus] = status
-                it[deliveryError] = null
+                it[MessagesTable.deliveryStatus] = status
+                it[MessagesTable.deliveryError] = deliveryError
             }
         }
     }
