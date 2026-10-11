@@ -11,6 +11,7 @@ interface ClientMessengerGateway {
 
 class DefaultClientMessengerGateway(
     private val messageRepository: MessageRepository,
+    private val realtimeNotifier: com.servicedesk.server.realtime.RealtimeNotifier,
     private val scope: CoroutineScope,
 ) : ClientMessengerGateway {
 
@@ -20,6 +21,7 @@ class DefaultClientMessengerGateway(
         scope.launch {
             delay(300 + Random.nextLong(0, 400))
             messageRepository.setDeliveryStatus(payload.messageId, "delivered")
+            realtimeNotifier.onMessageDeliveryUpdated(payload.ticketId, payload.messageId, "delivered")
             if (Random.nextFloat() < 0.08f) return@launch
             delay(1200 + Random.nextLong(0, 2800))
             val wantsPhoto = trimmed.contains("фото", ignoreCase = true) ||
@@ -41,12 +43,15 @@ class DefaultClientMessengerGateway(
                 trimmed.isNotEmpty() -> ClientReplyText.pick(trimmed)
                 else -> return@launch
             }
-            messageRepository.insertUserMessage(
+            val created = messageRepository.insertUserMessage(
                 ticketId = payload.ticketId,
                 text = replyText,
                 replyToId = if (Random.nextBoolean()) payload.messageId else null,
                 media = mediaReply,
             )
+            if (created != null) {
+                realtimeNotifier.onMessageCreated(payload.ticketId, created)
+            }
         }
     }
 }

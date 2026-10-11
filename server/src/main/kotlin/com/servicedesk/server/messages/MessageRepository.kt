@@ -37,6 +37,8 @@ interface MessageRepository {
     suspend fun ticketsWithMessages(): List<Int>
     suspend fun lastMessageText(ticketId: Int): String?
     suspend fun setDeliveryStatus(messageId: Int, status: String)
+    suspend fun findById(messageId: Int): MessageDto?
+
     suspend fun insertUserMessage(
         ticketId: Int,
         text: String,
@@ -161,6 +163,15 @@ class ExposedMessageRepository : MessageRepository {
                     row[MessagesTable.messageText]?.trim()?.takeIf { it.isNotEmpty() }
                         ?: mediaPreviewLabel(row[MessagesTable.mediaType], row[MessagesTable.mediaFileName])
                 }
+        }
+
+    override suspend fun findById(messageId: Int): MessageDto? =
+        newSuspendedTransaction(Dispatchers.IO) {
+            MessagesTable
+                .selectAll()
+                .where { MessagesTable.id eq messageId }
+                .firstOrNull()
+                ?.toDto()
         }
 
     override suspend fun setDeliveryStatus(messageId: Int, status: String) {

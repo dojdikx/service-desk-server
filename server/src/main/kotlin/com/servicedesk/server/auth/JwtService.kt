@@ -3,6 +3,7 @@ package com.servicedesk.server.auth
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
 import com.servicedesk.server.config.AppConfig
+import com.servicedesk.server.plugins.StaffPrincipal
 import java.util.Date
 
 object JwtService {
@@ -27,4 +28,13 @@ object JwtService {
 
     fun staffId(payload: com.auth0.jwt.interfaces.Payload): Int? =
         payload.getClaim("staffId")?.asInt() ?: payload.subject?.toIntOrNull()
+
+    fun principalFromToken(rawToken: String): StaffPrincipal? =
+        runCatching {
+            val token = rawToken.removePrefix("Bearer").trim()
+            val jwt = verifier().verify(token)
+            val staffId = staffId(jwt) ?: return null
+            val role = jwt.getClaim("role").asString() ?: "support_agent"
+            StaffPrincipal(staffId, role)
+        }.getOrNull()
 }

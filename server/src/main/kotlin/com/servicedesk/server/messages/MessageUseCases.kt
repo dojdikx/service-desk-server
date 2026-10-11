@@ -35,6 +35,7 @@ class SendTicketMessageUseCase(
     private val ticketRepository: TicketRepository,
     private val messageRepository: MessageRepository,
     private val clientMessengerGateway: ClientMessengerGateway,
+    private val realtimeNotifier: com.servicedesk.server.realtime.RealtimeNotifier,
 ) {
     suspend fun execute(request: SendMessageRequest, session: StaffSession): SendMessageResponse {
         ensureTicketAccess(ticketRepository, request.ticketId, session)
@@ -51,6 +52,7 @@ class SendTicketMessageUseCase(
             quoteOffset = request.quoteOffset,
             media = media,
         ) ?: throw TicketNotFoundException()
+        realtimeNotifier.onMessageCreated(request.ticketId, message)
         clientMessengerGateway.onStaffMessageSent(
             StaffOutboundPayload(
                 ticketId = request.ticketId,

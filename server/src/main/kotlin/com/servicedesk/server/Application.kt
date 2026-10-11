@@ -20,6 +20,9 @@ import com.servicedesk.server.messages.SendTicketMessageUseCase
 import com.servicedesk.server.media.MediaStorage
 import com.servicedesk.server.media.configureMediaRoutes
 import com.servicedesk.server.messages.configureMessageRoutes
+import com.servicedesk.server.realtime.RealtimeBroadcaster
+import com.servicedesk.server.realtime.RealtimeNotifier
+import com.servicedesk.server.realtime.configureRealtimeWebSockets
 import com.servicedesk.server.staff.ExposedStaffDirectoryRepository
 import com.servicedesk.server.staff.configureStaffDirectoryRoutes
 import com.servicedesk.server.tickets.AssignTicketUseCase
@@ -41,6 +44,7 @@ import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.server.plugins.cors.routing.CORS
+import io.ktor.server.websocket.WebSockets
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -67,6 +71,7 @@ fun Application.module() {
             },
         )
     }
+    install(WebSockets)
     install(CORS) {
         allowHost("localhost")
         anyHost()
@@ -95,9 +100,16 @@ fun Application.module() {
     configureMediaRoutes(mediaStorage)
 
     val messageRepository = ExposedMessageRepository()
-    val messengerScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
-    val clientMessengerGateway = DefaultClientMessengerGateway(messageRepository, messengerScope)
+    val realtimeBroadcaster = RealtimeBroadcaster()
     val ticketRepository = ExposedTicketRepository(messageRepository)
+    val realtimeNotifier = RealtimeNotifier(realtimeBroadcaster, ticketRepository, messageRepository)
+    val messengerScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+    val clientMessengerGateway = DefaultClientMessengerGateway(
+        messageRepository,
+        realtimeNotifier,
+        messengerScope,
+    )
+    configureRealtimeWebSockets(realtimeBroadcaster, ticketRepository)
     configureTicketRoutes(
         listTicketsUseCase = ListTicketsUseCase(ticketRepository),
         filterTicketsUseCase = FilterTicketsUseCase(ticketRepository),
@@ -110,7 +122,12 @@ fun Application.module() {
     configureMessageRoutes(
         previewUseCase = GetTicketMessagesPreviewUseCase(ticketRepository, messageRepository),
         beforeUseCase = GetTicketMessagesBeforeUseCase(ticketRepository, messageRepository),
-        sendUseCase = SendTicketMessageUseCase(ticketRepository, messageRepository, clientMessengerGateway),
+        sendUseCase = SendTicketMessageUseCase(
+            ticketRepository,
+            messageRepository,
+            clientMessengerGateway,
+            realtimeNotifier,
+        ),
         dialogsUseCase = ListTicketDialogsUseCase(messageRepository),
     )
 
