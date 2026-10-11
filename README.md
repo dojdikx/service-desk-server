@@ -49,6 +49,16 @@ curl http://127.0.0.1:8080/
 docker exec -it service-desk-db psql -U servicedesk_user -d servicedesk -c "\dt"
 ```
 
+## Заявки (JWT)
+
+После входа:
+
+- `GET /api/tickets/columns` — статусы канбана
+- `GET /api/tickets` — список (оператор: только назначенные на него; админ: все)
+- `POST /api/tickets`, `GET/PATCH /api/tickets/{id}`, `POST /api/tickets/{id}/assign` (назначение — только admin)
+
+Миграция `V2` добавляет двух демо-клиентов MAX и заявки (видны администратору; оператору — после назначения).
+
 ## Тесты
 
 ```bash

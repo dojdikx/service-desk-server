@@ -10,6 +10,13 @@ import com.servicedesk.server.plugins.configureAuth
 import com.servicedesk.server.plugins.configureFlyway
 import com.servicedesk.server.plugins.configureMonitoring
 import com.servicedesk.server.plugins.configureRouting
+import com.servicedesk.server.tickets.AssignTicketUseCase
+import com.servicedesk.server.tickets.CreateTicketUseCase
+import com.servicedesk.server.tickets.ExposedTicketRepository
+import com.servicedesk.server.tickets.GetTicketUseCase
+import com.servicedesk.server.tickets.ListTicketsUseCase
+import com.servicedesk.server.tickets.PatchTicketUseCase
+import com.servicedesk.server.tickets.configureTicketRoutes
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
 import io.ktor.serialization.kotlinx.json.json
@@ -63,6 +70,15 @@ fun Application.module() {
         registerStaffUseCase = RegisterStaffUseCase(staffAuthRepository),
         loginStaffUseCase = LoginStaffUseCase(staffAuthRepository),
         getCurrentStaffUseCase = GetCurrentStaffUseCase(staffAuthRepository),
+    )
+
+    val ticketRepository = ExposedTicketRepository()
+    configureTicketRoutes(
+        listTicketsUseCase = ListTicketsUseCase(ticketRepository),
+        getTicketUseCase = GetTicketUseCase(ticketRepository),
+        createTicketUseCase = CreateTicketUseCase(ticketRepository),
+        patchTicketUseCase = PatchTicketUseCase(ticketRepository),
+        assignTicketUseCase = AssignTicketUseCase(ticketRepository),
     )
 
     configureMonitoring()

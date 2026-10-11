@@ -22,7 +22,9 @@ fun Application.configureAuth(
             realm = "service-desk"
             verifier(JwtService.verifier())
             validate { credential ->
-                JwtService.staffId(credential.payload)?.let { StaffPrincipal(it) }
+                val staffId = JwtService.staffId(credential.payload) ?: return@validate null
+                val role = credential.payload.getClaim("role").asString() ?: "support_agent"
+                StaffPrincipal(staffId, role)
             }
             challenge { _, _ ->
                 call.respond(
@@ -35,4 +37,7 @@ fun Application.configureAuth(
     configureAuthRoutes(registerStaffUseCase, loginStaffUseCase, getCurrentStaffUseCase)
 }
 
-data class StaffPrincipal(val staffId: Int) : io.ktor.server.auth.Principal
+data class StaffPrincipal(
+    val staffId: Int,
+    val role: String,
+) : io.ktor.server.auth.Principal
