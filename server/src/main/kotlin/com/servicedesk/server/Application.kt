@@ -2,6 +2,11 @@ package com.servicedesk.server
 
 import com.servicedesk.server.config.AppConfig
 import com.servicedesk.server.db.DatabaseFactory
+import com.servicedesk.server.auth.ExposedStaffAuthRepository
+import com.servicedesk.server.auth.GetCurrentStaffUseCase
+import com.servicedesk.server.auth.LoginStaffUseCase
+import com.servicedesk.server.auth.RegisterStaffUseCase
+import com.servicedesk.server.plugins.configureAuth
 import com.servicedesk.server.plugins.configureFlyway
 import com.servicedesk.server.plugins.configureMonitoring
 import com.servicedesk.server.plugins.configureRouting
@@ -52,6 +57,14 @@ fun Application.module() {
 
     configureFlyway()
     DatabaseFactory.init()
+
+    val staffAuthRepository = ExposedStaffAuthRepository()
+    configureAuth(
+        registerStaffUseCase = RegisterStaffUseCase(staffAuthRepository),
+        loginStaffUseCase = LoginStaffUseCase(staffAuthRepository),
+        getCurrentStaffUseCase = GetCurrentStaffUseCase(staffAuthRepository),
+    )
+
     configureMonitoring()
     configureRouting()
 }
