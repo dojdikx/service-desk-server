@@ -38,6 +38,8 @@ fun Application.configureMessageRoutes(
                         call.respond(HttpStatusCode.NotFound, mapOf("code" to "TICKET_NOT_FOUND"))
                     } catch (_: TicketAccessDeniedException) {
                         call.respond(HttpStatusCode.Forbidden, mapOf("code" to "FORBIDDEN"))
+                    } catch (_: EmptyMessageException) {
+                        call.respond(HttpStatusCode.BadRequest, mapOf("code" to "EMPTY_MESSAGE"))
                     }
                 }
                 get("/ticket/{ticketId}/preview") {

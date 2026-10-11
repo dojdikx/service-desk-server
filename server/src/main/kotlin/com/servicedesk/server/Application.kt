@@ -17,6 +17,8 @@ import com.servicedesk.server.messages.ListTicketDialogsUseCase
 import com.servicedesk.server.messages.MarkTicketReadUseCase
 import com.servicedesk.server.messages.DefaultClientMessengerGateway
 import com.servicedesk.server.messages.SendTicketMessageUseCase
+import com.servicedesk.server.media.MediaStorage
+import com.servicedesk.server.media.configureMediaRoutes
 import com.servicedesk.server.messages.configureMessageRoutes
 import com.servicedesk.server.staff.ExposedStaffDirectoryRepository
 import com.servicedesk.server.staff.configureStaffDirectoryRoutes
@@ -80,6 +82,7 @@ fun Application.module() {
 
     configureFlyway()
     DatabaseFactory.init()
+    MediaStorage.ensureLayout()
 
     val staffAuthRepository = ExposedStaffAuthRepository()
     configureAuth(
@@ -87,6 +90,9 @@ fun Application.module() {
         loginStaffUseCase = LoginStaffUseCase(staffAuthRepository),
         getCurrentStaffUseCase = GetCurrentStaffUseCase(staffAuthRepository),
     )
+
+    val mediaStorage = MediaStorage()
+    configureMediaRoutes(mediaStorage)
 
     val messageRepository = ExposedMessageRepository()
     val messengerScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)

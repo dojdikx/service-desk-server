@@ -7,6 +7,9 @@ import java.time.Instant
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import kotlinx.coroutines.Dispatchers
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.builtins.ListSerializer
 import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.SortOrder
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
@@ -27,16 +30,24 @@ interface MessageRepository {
         replyToId: Int? = null,
         quoteText: String? = null,
         quoteOffset: Int? = null,
+        media: MessageMediaFields = MessageMediaFields(),
     ): MessageDto?
     suspend fun markTicketRead(staffId: Int, ticketId: Int)
     suspend fun unreadCount(staffId: Int, ticketId: Int): Int
     suspend fun ticketsWithMessages(): List<Int>
     suspend fun lastMessageText(ticketId: Int): String?
     suspend fun setDeliveryStatus(messageId: Int, status: String)
-    suspend fun insertUserMessage(ticketId: Int, text: String, replyToId: Int? = null): MessageDto?
+    suspend fun insertUserMessage(
+        ticketId: Int,
+        text: String,
+        replyToId: Int? = null,
+        media: MessageMediaFields = MessageMediaFields(),
+    ): MessageDto?
 }
 
 class ExposedMessageRepository : MessageRepository {
+
+    private val json = Json { ignoreUnknownKeys = true }
 
     override suspend fun listPreview(ticketId: Int, limit: Int): List<MessageDto> =
         newSuspendedTransaction(Dispatchers.IO) {
@@ -66,6 +77,7 @@ class ExposedMessageRepository : MessageRepository {
         replyToId: Int?,
         quoteText: String?,
         quoteOffset: Int?,
+        media: MessageMediaFields,
     ): MessageDto? =
         newSuspendedTransaction(Dispatchers.IO) {
             val exists = TicketsTable.selectAll().where { TicketsTable.id eq ticketId }.any()
@@ -73,13 +85,18 @@ class ExposedMessageRepository : MessageRepository {
             val now = Instant.now()
             val id = MessagesTable.insert {
                 it[MessagesTable.ticketId] = ticketId
-                it[messageText] = text
+                it[messageText] = text.takeIf { it.isNotBlank() }
                 it[messageType] = "backend"
                 it[timestamp] = now
                 it[deliveryStatus] = "pending"
                 it[MessagesTable.replyToId] = replyToId
                 it[MessagesTable.quoteText] = quoteText
                 it[MessagesTable.quoteOffset] = quoteOffset
+                it[mediaType] = media.mediaType
+                it[mediaUrl] = media.mediaUrl
+                it[mediaCaption] = media.mediaCaption
+                it[mediaFileName] = media.mediaFileName
+                it[MessagesTable.mediaItems] = encodeMediaItems(media.mediaItems)
             }[MessagesTable.id]
             MessagesTable.selectAll().where { MessagesTable.id eq id }.first().toDto()
         }
@@ -140,9 +157,10 @@ class ExposedMessageRepository : MessageRepository {
                 .orderBy(MessagesTable.id to SortOrder.DESC)
                 .limit(1)
                 .firstOrNull()
-                ?.get(MessagesTable.messageText)
-                ?.trim()
-                ?.takeIf { it.isNotEmpty() }
+                ?.let { row ->
+                    row[MessagesTable.messageText]?.trim()?.takeIf { it.isNotEmpty() }
+                        ?: mediaPreviewLabel(row[MessagesTable.mediaType], row[MessagesTable.mediaFileName])
+                }
         }
 
     override suspend fun setDeliveryStatus(messageId: Int, status: String) {
@@ -154,21 +172,49 @@ class ExposedMessageRepository : MessageRepository {
         }
     }
 
-    override suspend fun insertUserMessage(ticketId: Int, text: String, replyToId: Int?): MessageDto? =
+    override suspend fun insertUserMessage(
+        ticketId: Int,
+        text: String,
+        replyToId: Int?,
+        media: MessageMediaFields,
+    ): MessageDto? =
         newSuspendedTransaction(Dispatchers.IO) {
             val exists = TicketsTable.selectAll().where { TicketsTable.id eq ticketId }.any()
             if (!exists) return@newSuspendedTransaction null
             val now = Instant.now()
             val id = MessagesTable.insert {
                 it[MessagesTable.ticketId] = ticketId
-                it[messageText] = text
+                it[messageText] = text.takeIf { it.isNotBlank() }
                 it[messageType] = "user"
                 it[timestamp] = now
                 it[deliveryStatus] = "delivered"
                 it[MessagesTable.replyToId] = replyToId
+                it[mediaType] = media.mediaType
+                it[mediaUrl] = media.mediaUrl
+                it[mediaCaption] = media.mediaCaption
+                it[mediaFileName] = media.mediaFileName
+                it[MessagesTable.mediaItems] = encodeMediaItems(media.mediaItems)
             }[MessagesTable.id]
             MessagesTable.selectAll().where { MessagesTable.id eq id }.first().toDto()
         }
+
+    private fun encodeMediaItems(items: List<MediaItemDto>?): String? =
+        items?.takeIf { it.isNotEmpty() }?.let {
+            json.encodeToString(ListSerializer(MediaItemDto.serializer()), it)
+        }
+
+    private fun decodeMediaItems(raw: String?): List<MediaItemDto>? =
+        raw?.takeIf { it.isNotBlank() }?.let {
+            json.decodeFromString(ListSerializer(MediaItemDto.serializer()), it)
+        }
+
+    private fun mediaPreviewLabel(mediaType: String?, fileName: String?): String? = when (mediaType) {
+        "photo" -> "Фото"
+        "video" -> "Видео"
+        "document" -> fileName ?: "Документ"
+        "album" -> "Альбом"
+        else -> null
+    }
 
     private fun ResultRow.toDto(): MessageDto {
         val ts = this[MessagesTable.timestamp]
@@ -182,6 +228,7 @@ class ExposedMessageRepository : MessageRepository {
             mediaUrl = this[MessagesTable.mediaUrl],
             mediaCaption = this[MessagesTable.mediaCaption],
             mediaFileName = this[MessagesTable.mediaFileName],
+            mediaItems = decodeMediaItems(this[MessagesTable.mediaItems]),
             deliveryStatus = this[MessagesTable.deliveryStatus],
             deliveryError = this[MessagesTable.deliveryError],
             replyToId = this[MessagesTable.replyToId],

@@ -39,14 +39,26 @@ class SendTicketMessageUseCase(
     suspend fun execute(request: SendMessageRequest, session: StaffSession): SendMessageResponse {
         ensureTicketAccess(ticketRepository, request.ticketId, session)
         val trimmed = request.text.trim()
+        val media = MessageMediaFields.fromRequest(request)
+        if (trimmed.isEmpty() && !media.hasMedia()) {
+            throw EmptyMessageException()
+        }
         val message = messageRepository.sendBackendMessage(
             ticketId = request.ticketId,
             text = trimmed,
             replyToId = request.replyToId,
             quoteText = request.quoteText,
             quoteOffset = request.quoteOffset,
+            media = media,
         ) ?: throw TicketNotFoundException()
-        clientMessengerGateway.onStaffMessageSent(request.ticketId, message.id, trimmed)
+        clientMessengerGateway.onStaffMessageSent(
+            StaffOutboundPayload(
+                ticketId = request.ticketId,
+                messageId = message.id,
+                text = trimmed,
+                media = media,
+            ),
+        )
         return SendMessageResponse(
             status = message.deliveryStatus ?: "pending",
             ticketId = request.ticketId,
