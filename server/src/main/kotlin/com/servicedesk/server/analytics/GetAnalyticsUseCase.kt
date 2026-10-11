@@ -1,5 +1,6 @@
 package com.servicedesk.server.analytics
 
+import com.servicedesk.server.tickets.TicketColumnsConfig
 import java.time.LocalDate
 
 sealed class AnalyticsUseCaseResult {
@@ -44,9 +45,12 @@ class GetAnalyticsUseCase(
                 ticketsCreated = data.ticketsCreated,
                 ticketsModified = data.ticketsModified,
                 statusBreakdown = if (request.includeStatusBreakdown) {
-                    data.statusBreakdown.entries
-                        .map { StatusCountDto(it.key, it.value) }
-                        .sortedBy { it.status }
+                    val counts = data.statusBreakdown
+                    val columns = TicketColumnsConfig.columnsResponse().columns
+                    val known = columns.map { it.status }.toSet()
+                    columns.map { column ->
+                        StatusCountDto(status = column.status, count = counts[column.status] ?: 0)
+                    } + counts.filterKeys { it !in known }.map { StatusCountDto(it.key, it.value) }
                 } else {
                     null
                 },
