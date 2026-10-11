@@ -9,6 +9,7 @@ import io.ktor.server.auth.principal
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
+import java.time.LocalDate
 import io.ktor.server.routing.get
 import io.ktor.server.routing.patch
 import io.ktor.server.routing.post
@@ -17,6 +18,7 @@ import io.ktor.server.routing.routing
 
 fun Application.configureTicketRoutes(
     listTicketsUseCase: ListTicketsUseCase,
+    filterTicketsUseCase: FilterTicketsUseCase,
     getTicketUseCase: GetTicketUseCase,
     createTicketUseCase: CreateTicketUseCase,
     patchTicketUseCase: PatchTicketUseCase,
@@ -27,6 +29,7 @@ fun Application.configureTicketRoutes(
             route("/api/tickets") {
                 ticketRoutes(
                     listTicketsUseCase,
+                    filterTicketsUseCase,
                     getTicketUseCase,
                     createTicketUseCase,
                     patchTicketUseCase,
@@ -39,6 +42,7 @@ fun Application.configureTicketRoutes(
 
 private fun Route.ticketRoutes(
     listTicketsUseCase: ListTicketsUseCase,
+    filterTicketsUseCase: FilterTicketsUseCase,
     getTicketUseCase: GetTicketUseCase,
     createTicketUseCase: CreateTicketUseCase,
     patchTicketUseCase: PatchTicketUseCase,
@@ -46,6 +50,47 @@ private fun Route.ticketRoutes(
 ) {
     get("/columns") {
         call.respond(TicketColumnsConfig.columnsResponse())
+    }
+
+    get("/filter") {
+        val session = call.staffSession() ?: return@get call.respond(HttpStatusCode.Unauthorized)
+        val startDate = call.request.queryParameters["start_date"]?.let { LocalDate.parse(it) }
+        val endDate = call.request.queryParameters["end_date"]?.let { LocalDate.parse(it) }
+        val tagStr = call.request.queryParameters["tag_str"]
+        val serialNumber = call.request.queryParameters["serial_number"]
+        val manager = call.request.queryParameters["manager"]?.toIntOrNull()
+        try {
+            call.respond(
+                filterTicketsUseCase.execute(
+                    session,
+                    TicketFilterParams(
+                        startDate = startDate,
+                        endDate = endDate,
+                        tagStr = tagStr,
+                        serialNumber = serialNumber,
+                        manager = manager,
+                    ),
+                ),
+            )
+        } catch (_: FiltersRequiredException) {
+            call.respond(
+                HttpStatusCode.BadRequest,
+                mapOf(
+                    "message" to "Укажите хотя бы один параметр фильтрации",
+                    "code" to "FILTERS_REQUIRED",
+                ),
+            )
+        } catch (_: InvalidDateRangeException) {
+            call.respond(
+                HttpStatusCode.BadRequest,
+                mapOf(
+                    "message" to "Дата начала не может быть позже даты окончания",
+                    "code" to "INVALID_DATE_RANGE",
+                ),
+            )
+        } catch (_: TicketAccessDeniedException) {
+            call.respond(HttpStatusCode.Forbidden, mapOf("code" to "FORBIDDEN"))
+        }
     }
 
     get {

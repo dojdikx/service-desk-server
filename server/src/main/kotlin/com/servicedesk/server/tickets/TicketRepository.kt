@@ -5,6 +5,7 @@ import com.servicedesk.server.db.TicketsTable
 import com.servicedesk.server.db.UsersTable
 import com.servicedesk.server.util.detectPrinterModelCode
 import com.servicedesk.server.util.normalizeSerialNumber
+import com.servicedesk.server.util.normalizeSerialSearch
 import java.time.Instant
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
@@ -12,8 +13,13 @@ import kotlinx.coroutines.Dispatchers
 import org.jetbrains.exposed.sql.JoinType
 import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.SortOrder
+import org.jetbrains.exposed.sql.Op
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.greaterEq
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.lessEq
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.like
 import org.jetbrains.exposed.sql.and
+import org.jetbrains.exposed.sql.or
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
@@ -21,6 +27,7 @@ import org.jetbrains.exposed.sql.update
 
 interface TicketRepository {
     suspend fun listShort(session: StaffSession): List<TicketShortDto>
+    suspend fun filterShort(session: StaffSession, params: TicketFilterParams): List<TicketShortDto>
     suspend fun findById(ticketId: Int): TicketDetailDto?
     suspend fun create(request: TicketCreateRequest): TicketDetailDto?
     suspend fun patch(ticketId: Int, request: TicketPatchRequest): TicketDetailDto?
@@ -32,21 +39,58 @@ class ExposedTicketRepository : TicketRepository {
 
     override suspend fun listShort(session: StaffSession): List<TicketShortDto> =
         newSuspendedTransaction(Dispatchers.IO) {
-            val query = TicketsTable
-                .join(UsersTable, JoinType.INNER, TicketsTable.userId, UsersTable.id)
-                .join(SupportStaffTable, JoinType.LEFT, TicketsTable.assignedTo, SupportStaffTable.id)
-                .selectAll()
-
-            val rows = if (session.isAdmin) {
-                query.orderBy(TicketsTable.createdAt to SortOrder.DESC)
+            val scope = if (session.isAdmin) {
+                Op.TRUE
             } else {
-                query
-                    .where { TicketsTable.assignedTo eq session.staffId }
-                    .orderBy(TicketsTable.createdAt to SortOrder.DESC)
+                TicketsTable.assignedTo eq session.staffId
+            }
+            queryShortTickets(scope).map { row -> row.toShortDto() }
+        }
+
+    override suspend fun filterShort(session: StaffSession, params: TicketFilterParams): List<TicketShortDto> =
+        newSuspendedTransaction(Dispatchers.IO) {
+            val serialNorm = params.serialNumber?.trim()?.takeIf { it.isNotEmpty() }?.let { normalizeSerialSearch(it) }
+            val tagClean = params.tagStr?.trim()?.takeIf { it.isNotEmpty() }
+
+            val scope: Op<Boolean> = when {
+                serialNorm != null -> Op.TRUE
+                session.isAdmin && params.manager != null -> TicketsTable.assignedTo eq params.manager
+                session.isAdmin -> Op.TRUE
+                else -> TicketsTable.assignedTo eq session.staffId
             }
 
-            rows.map { row -> row.toShortDto() }
+            val filters = mutableListOf<Op<Boolean>>()
+            params.startDate?.let { start ->
+                val instant = start.atStartOfDay(ZoneOffset.UTC).toInstant()
+                filters += TicketsTable.createdAt greaterEq instant
+            }
+            params.endDate?.let { end ->
+                val instant = end.atTime(23, 59, 59).atZone(ZoneOffset.UTC).toInstant()
+                filters += TicketsTable.createdAt lessEq instant
+            }
+            tagClean?.let { tag ->
+                filters += TicketsTable.tags like "%$tag%"
+            }
+            serialNorm?.let { sn ->
+                val pattern = "%$sn%"
+                filters += (
+                    (TicketsTable.serialNumber like pattern) or
+                        (TicketsTable.extraSerialNumber like pattern) or
+                        ((TicketsTable.serialNumber eq "") and (UsersTable.serialNumber like pattern))
+                    )
+            }
+
+            val combined = filters.fold(scope) { acc, op -> acc and op }
+            queryShortTickets(combined).map { it.toShortDto() }
         }
+
+    private fun queryShortTickets(where: Op<Boolean>) =
+        TicketsTable
+            .join(UsersTable, JoinType.INNER, TicketsTable.userId, UsersTable.id)
+            .join(SupportStaffTable, JoinType.LEFT, TicketsTable.assignedTo, SupportStaffTable.id)
+            .selectAll()
+            .where { where }
+            .orderBy(TicketsTable.createdAt to SortOrder.DESC)
 
     override suspend fun findById(ticketId: Int): TicketDetailDto? =
         newSuspendedTransaction(Dispatchers.IO) {

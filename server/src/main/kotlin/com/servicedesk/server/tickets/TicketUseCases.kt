@@ -7,6 +7,40 @@ class ListTicketsUseCase(
         TicketListResponse(tickets = repository.listShort(session))
 }
 
+class FilterTicketsUseCase(
+    private val repository: TicketRepository,
+) {
+    suspend fun execute(session: StaffSession, params: TicketFilterParams): TicketListResponse {
+        val tagClean = params.tagStr?.trim()?.takeIf { it.isNotEmpty() }
+        val serialClean = params.serialNumber?.trim()?.takeIf { it.isNotEmpty() }
+        val hasFilter = when {
+            session.isAdmin -> {
+                params.startDate != null || params.endDate != null ||
+                    tagClean != null || serialClean != null || params.manager != null
+            }
+            else -> {
+                params.startDate != null || params.endDate != null ||
+                    tagClean != null || serialClean != null
+            }
+        }
+        if (!hasFilter) {
+            throw FiltersRequiredException()
+        }
+        if (params.startDate != null && params.endDate != null && params.startDate > params.endDate) {
+            throw InvalidDateRangeException()
+        }
+        if (!session.isAdmin && params.manager != null) {
+            throw TicketAccessDeniedException()
+        }
+        return TicketListResponse(
+            tickets = repository.filterShort(
+                session,
+                params.copy(tagStr = tagClean, serialNumber = serialClean),
+            ),
+        )
+    }
+}
+
 class GetTicketUseCase(
     private val repository: TicketRepository,
 ) {
