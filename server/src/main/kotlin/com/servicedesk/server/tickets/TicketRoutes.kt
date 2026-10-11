@@ -52,6 +52,12 @@ private fun Route.ticketRoutes(
         call.respond(TicketColumnsConfig.columnsResponse())
     }
 
+    get("/issue-types") {
+        if (call.staffSession() == null) return@get call.respond(HttpStatusCode.Unauthorized)
+        val lang = call.request.queryParameters["lang"] ?: "ru"
+        call.respond(IssueTypesConfig.response(lang))
+    }
+
     get("/filter") {
         val session = call.staffSession() ?: return@get call.respond(HttpStatusCode.Unauthorized)
         val startDate = call.request.queryParameters["start_date"]?.let { LocalDate.parse(it) }

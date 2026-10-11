@@ -1,0 +1,210 @@
+{
+  "hierarchy": [
+    {
+      "issueType": "Visible Structural Damage to Printer/AMS/Filament Parts",
+      "subIssueTypes": [
+        "Toolhead Module Damage",
+        "Heatbed Damage",
+        "Nozzle Wiper Damage",
+        "Build Plate Damage",
+        "Peripheral (Screen/Camera/LED) Damage",
+        "Micro Lidar Module Damage",
+        "Micro Lidar Calibration Sticker Damage",
+        "Circuit Board/Cable Damage",
+        "X/Y/Z Axis/Motor/Belt/Bearing/Screw/PTFE Tube/Extruder/Frame Component Damage",
+        "AMS Mechanical Damage",
+        "Bambu Lab Filament and Printer Accessories Malfunction"
+      ]
+    },
+    {
+      "issueType": "Power Supply/Electronic Malfunction",
+      "subIssueTypes": [
+        "Power Switch Indicator Not Lit",
+        "Power Switch Lit, but Display and All other Peripherals are not powered",
+        "Circuit Board Malfunction(Indicator Lights Out, Damaged Components)",
+        "Printer Automatic Restart",
+        "Printer Power Tripping",
+        "Other"
+      ]
+    },
+    {
+      "issueType": "Toolhead Module Malfunction",
+      "subIssueTypes": [
+        "Hotend Clogging",
+        "Filament Wrap on Toolhead",
+        "Extruder Clogging",
+        "Toolhead Extruding Filament Failure",
+        "Hotend Temperature Control Malfunction",
+        "Hotend Cooling Fan",
+        "Part Cooling Fan",
+        "Cooling Fan/Chamber Heating Malfunction",
+        "Filament Cutter (lever) Stuck/Malfunction",
+        "Extruder Motor Malfunction",
+        "Front Cover Fell off",
+        "Hotend Collides with Heatbed/Printed part",
+        "Toolhead Module Malfunction HMS",
+        "Accelerometer Data Malfunction HMS",
+        "Extrusion Force Sensor HMS Error",
+        "Nozzle Height Malfunction",
+        "Automatic Flow Calibration Failure",
+        "Other"
+      ]
+    },
+    {
+      "issueType": "Heatbed Module Malfunction",
+      "subIssueTypes": [
+        "Heatbed Homing Z Failure",
+        "Auto Bed Leveling Failure",
+        "Heatbed Temperature Control Malfunction",
+        "Heatbed Force Sensor Malfunction",
+        "Eddy Current Sensor HMS Error",
+        "Uneven Heatbed",
+        "Build Plate Placement Error",
+        "Build Plate Localization Marker Detection Error",
+        "Other"
+      ]
+    },
+    {
+      "issueType": "Micro Lidar/AI/Screen/SD Card/Camera/LED/Fan/Chamber Temp",
+      "subIssueTypes": [
+        "Micro LiDAR & AI Module Malfunction",
+        "Screen Malfunction",
+        "SD card Malfunction",
+        "Chamber Camera Malfunction",
+        "Chamber LED Malfunction",
+        "Other"
+      ]
+    },
+    {
+      "issueType": "X/Y/Z Axis Noise/Malfunction",
+      "subIssueTypes": [
+        "Toolhead Module Noise",
+        "XY Axis Motion Noise",
+        "Z Axis Motion Noise",
+        "Fan Noise",
+        "X/Y Belt Tension Frequency Error",
+        "Z-axis Stuck Error ",
+        "X/Y/Z Stepper Motor HMS Error",
+        "Other"
+      ]
+    },
+    {
+      "issueType": "AMS (Automatic Material System) Malfunction",
+      "subIssueTypes": [
+        "Printer Unable to Detect AMS ",
+        "AMS Pre-Loading Failure",
+        "AMS RFID Reading Failure",
+        "AMS Load Filament Failure",
+        "AMS Assist Motor Overloaded",
+        "AMS Unload Filament Failure",
+        "AMS Mapping Abnormal",
+        "AMS Noise",
+        "Other"
+      ]
+    },
+    {
+      "issueType": "Printer Firmware/Network Malfunction",
+      "subIssueTypes": [
+        "Printer Firmware Malfunction",
+        "Printer Network Malfunction"
+      ]
+    },
+    {
+      "issueType": "Bambu Software(Bambu Studio/Handy) Malfunction",
+      "subIssueTypes": [
+        "Bambu Studio Malfunction",
+        "Bambu Handy Malfunction"
+      ]
+    },
+    {
+      "issueType": "Print Quality not meeting Expectations",
+      "subIssueTypes": [
+        "Ghosting/Ringing",
+        "Stringing and Oozing",
+        "Support Structure Failures During Printing",
+        "First Layer not Adhering to the Print Bed",
+        "Model Warping/Model Falling Off",
+        "Print Dimensions not Matching Expectations",
+        "Model Layer Shifting",
+        "Surface Defects on Printed Parts",
+        "Other"
+      ]
+    }
+  ],
+  "thirdIssueTypes": [
+    "Toolhead Module Damage",
+    "Heatbed Damage",
+    "Nozzle Wiper Damage",
+    "Build Plate Damage",
+    "Peripheral (Screen/Camera/LED) Damage",
+    "Micro Lidar Module Damage",
+    "Micro Lidar Calibration Sticker Damage",
+    "Circuit Board/Cable Damage",
+    "X/Y/Z Axis/Motor/Belt/Bearing/Screw/PTFE Tube/Extruder/Frame Component Damage",
+    "AMS Mechanical Damage",
+    "Bambu Lab Filament and Printer Accessories Malfunction",
+    "Power Switch Indicator Not Lit",
+    "Power Switch Lit, but Display and All other Peripherals are not powered",
+    "Circuit Board Malfunction(Indicator Lights Out, Damaged Components)",
+    "Printer Automatic Restart",
+    "Printer Power Tripping",
+    "Other",
+    "Hotend Clogging",
+    "Filament Wrap on Toolhead",
+    "Extruder Clogging",
+    "Toolhead Extruding Filament Failure",
+    "Hotend Temperature Control Malfunction",
+    "Hotend Cooling Fan",
+    "Part Cooling Fan",
+    "Cooling Fan/Chamber Heating Malfunction",
+    "Filament Cutter (lever) Stuck/Malfunction",
+    "Extruder Motor Malfunction",
+    "Front Cover Fell off",
+    "Hotend Collides with Heatbed/Printed part",
+    "Toolhead Module Malfunction HMS",
+    "Accelerometer Data Malfunction HMS",
+    "Extrusion Force Sensor HMS Error",
+    "Nozzle Height Malfunction",
+    "Automatic Flow Calibration Failure",
+    "Heatbed Homing Z Failure",
+    "Auto Bed Leveling Failure",
+    "Heatbed Temperature Control Malfunction",
+    "Heatbed Force Sensor Malfunction",
+    "Eddy Current Sensor HMS Error",
+    "Uneven Heatbed",
+    "Build Plate Placement Error",
+    "Build Plate Localization Marker Detection Error",
+    "Micro LiDAR & AI Module Malfunction",
+    "Screen Malfunction",
+    "SD card Malfunction",
+    "Chamber Camera Malfunction",
+    "Chamber LED Malfunction",
+    "Toolhead Module Noise",
+    "XY Axis Motion Noise",
+    "Z Axis Motion Noise",
+    "Fan Noise",
+    "X/Y Belt Tension Frequency Error",
+    "Z-axis Stuck Error ",
+    "X/Y/Z Stepper Motor HMS Error",
+    "Printer Unable to Detect AMS ",
+    "AMS Pre-Loading Failure",
+    "AMS RFID Reading Failure",
+    "AMS Load Filament Failure",
+    "AMS Assist Motor Overloaded",
+    "AMS Unload Filament Failure",
+    "AMS Mapping Abnormal",
+    "AMS Noise",
+    "Printer Firmware Malfunction",
+    "Printer Network Malfunction",
+    "Bambu Studio Malfunction",
+    "Bambu Handy Malfunction",
+    "Ghosting/Ringing",
+    "Stringing and Oozing",
+    "Support Structure Failures During Printing",
+    "First Layer not Adhering to the Print Bed",
+    "Model Warping/Model Falling Off",
+    "Print Dimensions not Matching Expectations",
+    "Model Layer Shifting",
+    "Surface Defects on Printed Parts"
+  ]
+}

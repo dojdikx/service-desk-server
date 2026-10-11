@@ -59,6 +59,8 @@ docker exec -it service-desk-db psql -U servicedesk_user -d servicedesk -c "\dt"
 - `GET /api/tickets/filter` — период, тег, серийник; у admin ещё `manager` (нужен хотя бы один параметр)
 - `GET /api/users` — клиенты MAX для ручного создания заявки
 - `GET /api/staff` — краткий список сотрудников (только admin, для фильтра по исполнителю)
+- `GET /api/tickets/issue-types?lang=ru|zh` — справочник неисправностей (ru/zh)
+- `PATCH /api/tickets/{id}` — все поля карточки и Excel, `external_export_url` — только ссылка
 
 Миграция `V2` добавляет двух демо-клиентов MAX и заявки (видны администратору; оператору — после назначения).
 
