@@ -35,6 +35,11 @@ private val modelLabels = mapOf(
 fun normalizeSerialNumber(serialNumber: String): String =
     serialNumber.trim().replace("\\s+".toRegex(), "").uppercase()
 
+fun normalizeSerialSearch(serialNumber: String): String {
+    val normalized = normalizeSerialNumber(serialNumber)
+    return if (normalized.startsWith("SN")) normalized.drop(2) else normalized
+}
+
 fun detectPrinterModelCode(serialNumber: String?): String? {
     if (serialNumber.isNullOrBlank()) return null
     val normalized = normalizeSerialNumber(serialNumber)
