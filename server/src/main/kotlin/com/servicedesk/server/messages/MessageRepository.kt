@@ -32,6 +32,8 @@ interface MessageRepository {
     suspend fun unreadCount(staffId: Int, ticketId: Int): Int
     suspend fun ticketsWithMessages(): List<Int>
     suspend fun lastMessageText(ticketId: Int): String?
+    suspend fun setDeliveryStatus(messageId: Int, status: String)
+    suspend fun insertUserMessage(ticketId: Int, text: String, replyToId: Int? = null): MessageDto?
 }
 
 class ExposedMessageRepository : MessageRepository {
@@ -141,6 +143,31 @@ class ExposedMessageRepository : MessageRepository {
                 ?.get(MessagesTable.messageText)
                 ?.trim()
                 ?.takeIf { it.isNotEmpty() }
+        }
+
+    override suspend fun setDeliveryStatus(messageId: Int, status: String) {
+        newSuspendedTransaction(Dispatchers.IO) {
+            MessagesTable.update({ MessagesTable.id eq messageId }) {
+                it[deliveryStatus] = status
+                it[deliveryError] = null
+            }
+        }
+    }
+
+    override suspend fun insertUserMessage(ticketId: Int, text: String, replyToId: Int?): MessageDto? =
+        newSuspendedTransaction(Dispatchers.IO) {
+            val exists = TicketsTable.selectAll().where { TicketsTable.id eq ticketId }.any()
+            if (!exists) return@newSuspendedTransaction null
+            val now = Instant.now()
+            val id = MessagesTable.insert {
+                it[MessagesTable.ticketId] = ticketId
+                it[messageText] = text
+                it[messageType] = "user"
+                it[timestamp] = now
+                it[deliveryStatus] = "delivered"
+                it[MessagesTable.replyToId] = replyToId
+            }[MessagesTable.id]
+            MessagesTable.selectAll().where { MessagesTable.id eq id }.first().toDto()
         }
 
     private fun ResultRow.toDto(): MessageDto {

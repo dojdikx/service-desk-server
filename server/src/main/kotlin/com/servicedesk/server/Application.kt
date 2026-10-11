@@ -15,6 +15,7 @@ import com.servicedesk.server.messages.GetTicketMessagesBeforeUseCase
 import com.servicedesk.server.messages.GetTicketMessagesPreviewUseCase
 import com.servicedesk.server.messages.ListTicketDialogsUseCase
 import com.servicedesk.server.messages.MarkTicketReadUseCase
+import com.servicedesk.server.messages.DefaultClientMessengerGateway
 import com.servicedesk.server.messages.SendTicketMessageUseCase
 import com.servicedesk.server.messages.configureMessageRoutes
 import com.servicedesk.server.staff.ExposedStaffDirectoryRepository
@@ -38,6 +39,9 @@ import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.server.plugins.cors.routing.CORS
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.serialization.json.Json
 
 fun main() {
@@ -85,6 +89,8 @@ fun Application.module() {
     )
 
     val messageRepository = ExposedMessageRepository()
+    val messengerScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+    val clientMessengerGateway = DefaultClientMessengerGateway(messageRepository, messengerScope)
     val ticketRepository = ExposedTicketRepository(messageRepository)
     configureTicketRoutes(
         listTicketsUseCase = ListTicketsUseCase(ticketRepository),
@@ -98,7 +104,7 @@ fun Application.module() {
     configureMessageRoutes(
         previewUseCase = GetTicketMessagesPreviewUseCase(ticketRepository, messageRepository),
         beforeUseCase = GetTicketMessagesBeforeUseCase(ticketRepository, messageRepository),
-        sendUseCase = SendTicketMessageUseCase(ticketRepository, messageRepository),
+        sendUseCase = SendTicketMessageUseCase(ticketRepository, messageRepository, clientMessengerGateway),
         dialogsUseCase = ListTicketDialogsUseCase(messageRepository),
     )
 

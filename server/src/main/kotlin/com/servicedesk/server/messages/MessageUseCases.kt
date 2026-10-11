@@ -34,18 +34,21 @@ class GetTicketMessagesBeforeUseCase(
 class SendTicketMessageUseCase(
     private val ticketRepository: TicketRepository,
     private val messageRepository: MessageRepository,
+    private val clientMessengerGateway: ClientMessengerGateway,
 ) {
     suspend fun execute(request: SendMessageRequest, session: StaffSession): SendMessageResponse {
         ensureTicketAccess(ticketRepository, request.ticketId, session)
+        val trimmed = request.text.trim()
         val message = messageRepository.sendBackendMessage(
             ticketId = request.ticketId,
-            text = request.text.trim(),
+            text = trimmed,
             replyToId = request.replyToId,
             quoteText = request.quoteText,
             quoteOffset = request.quoteOffset,
         ) ?: throw TicketNotFoundException()
+        clientMessengerGateway.onStaffMessageSent(request.ticketId, message.id, trimmed)
         return SendMessageResponse(
-            status = "pending",
+            status = message.deliveryStatus ?: "pending",
             ticketId = request.ticketId,
             messageId = message.id,
             text = message.messageText,
