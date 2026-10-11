@@ -63,7 +63,8 @@ docker exec -it service-desk-db psql -U servicedesk_user -d servicedesk -c "\dt"
 - `PATCH /api/tickets/{id}` — все поля карточки и Excel, `external_export_url` — только ссылка
 - `POST /api/tickets/{id}/read` — отметить диалог прочитанным
 - `GET /api/messages/tickets` — id заявок с перепиской
-- `GET /api/messages/ticket/{id}/preview`, `GET /api/messages/ticket/{id}/history?before_id=`, `POST /api/messages/send`
+- `GET /api/messages/ticket/{id}/preview`, `GET /api/messages/ticket/{id}/history?before_id=`, `POST /api/messages/send` (текст и/или медиа)
+- `POST /api/media/upload` (multipart), `GET /api/media/{storageKey}` — вложения чата
 
 Миграция `V2` добавляет двух демо-клиентов MAX и заявки (видны администратору; оператору — после назначения).
 
