@@ -24,6 +24,7 @@ class ExposedStaffDirectoryRepository : StaffDirectoryRepository {
                         email = row[SupportStaffTable.email],
                         firstName = row[SupportStaffTable.firstName],
                         lastName = row[SupportStaffTable.lastName],
+                        role = row[SupportStaffTable.role],
                     )
                 }
         }

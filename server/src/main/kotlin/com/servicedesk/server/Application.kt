@@ -30,6 +30,9 @@ import com.servicedesk.server.realtime.RealtimeNotifier
 import com.servicedesk.server.realtime.configureRealtimeWebSockets
 import com.servicedesk.server.staff.ExposedStaffDirectoryRepository
 import com.servicedesk.server.staff.configureStaffDirectoryRoutes
+import com.servicedesk.server.tickets.export.ExposedTicketsExportRepository
+import com.servicedesk.server.tickets.export.ExportTicketsUseCase
+import com.servicedesk.server.tickets.export.configureTicketsExportRoutes
 import com.servicedesk.server.tickets.AssignTicketUseCase
 import com.servicedesk.server.tickets.CreateTicketUseCase
 import com.servicedesk.server.tickets.ExposedTicketRepository
@@ -147,6 +150,12 @@ fun Application.module() {
     configureAnalyticsRoutes(
         getAnalyticsUseCase = GetAnalyticsUseCase(analyticsRepository, analyticsStorage),
         storage = analyticsStorage,
+    )
+    configureTicketsExportRoutes(
+        exportTicketsUseCase = ExportTicketsUseCase(
+            ExposedTicketsExportRepository(),
+            analyticsStorage,
+        ),
     )
 
     configureUserRoutes(ExposedUserRepository())

@@ -41,3 +41,8 @@ data class MeResponse(
 data class MessageResponse(
     val message: String,
 )
+
+@Serializable
+data class RegisterStaffResponse(
+    val staff: StaffPublicDto,
+)

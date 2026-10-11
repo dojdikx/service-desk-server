@@ -19,20 +19,27 @@ fun Route.authRoutes(
     loginStaffUseCase: LoginStaffUseCase,
     getCurrentStaffUseCase: GetCurrentStaffUseCase,
 ) {
-    post("/register") {
-        try {
-            val request = call.receive<RegisterRequest>()
-            call.respond(HttpStatusCode.Created, registerStaffUseCase.execute(request))
-        } catch (e: EmailAlreadyExistsException) {
-            call.respond(
-                HttpStatusCode.Conflict,
-                mapOf("error" to "email_already_exists", "message" to "Этот email уже занят"),
-            )
-        } catch (e: ValidationException) {
-            call.respond(
-                HttpStatusCode.BadRequest,
-                mapOf("error" to "validation_error", "message" to (e.message ?: "")),
-            )
+    authenticate("auth-jwt") {
+        post("/register") {
+            val principal = call.principal<StaffPrincipal>()
+                ?: return@post call.respond(HttpStatusCode.Unauthorized)
+            if (principal.role != "admin") {
+                return@post call.respond(HttpStatusCode.Forbidden, mapOf("code" to "FORBIDDEN"))
+            }
+            try {
+                val request = call.receive<RegisterRequest>()
+                call.respond(HttpStatusCode.Created, registerStaffUseCase.executeAsAdmin(request))
+            } catch (e: EmailAlreadyExistsException) {
+                call.respond(
+                    HttpStatusCode.Conflict,
+                    mapOf("error" to "email_already_exists", "message" to "Этот email уже занят"),
+                )
+            } catch (e: ValidationException) {
+                call.respond(
+                    HttpStatusCode.BadRequest,
+                    mapOf("error" to "validation_error", "message" to (e.message ?: "")),
+                )
+            }
         }
     }
 

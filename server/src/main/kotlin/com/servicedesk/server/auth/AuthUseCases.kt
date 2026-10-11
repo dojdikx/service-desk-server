@@ -3,22 +3,31 @@ package com.servicedesk.server.auth
 class RegisterStaffUseCase(
     private val repository: StaffAuthRepository,
 ) {
+    suspend fun executeAsAdmin(request: RegisterRequest): RegisterStaffResponse {
+        val staff = createStaff(request)
+        return RegisterStaffResponse(staff = staff.toPublicDto())
+    }
+
     suspend fun execute(request: RegisterRequest): AuthResponse {
+        val staff = createStaff(request)
+        return AuthResponse(
+            token = JwtService.issue(staff.id, staff.email, staff.role),
+            staff = staff.toPublicDto(),
+        )
+    }
+
+    private suspend fun createStaff(request: RegisterRequest): StaffRecord {
         val email = request.email.trim().lowercase()
         validateEmail(email)
         validatePassword(request.password)
         if (repository.findByEmail(email) != null) {
             throw EmailAlreadyExistsException(email)
         }
-        val staff = repository.create(
+        return repository.create(
             email = email,
             passwordHash = PasswordHasher.hash(request.password),
             firstName = request.firstName,
             lastName = request.lastName,
-        )
-        return AuthResponse(
-            token = JwtService.issue(staff.id, staff.email, staff.role),
-            staff = staff.toPublicDto(),
         )
     }
 }
