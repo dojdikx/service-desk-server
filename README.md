@@ -56,6 +56,9 @@ docker exec -it service-desk-db psql -U servicedesk_user -d servicedesk -c "\dt"
 - `GET /api/tickets/columns` — статусы канбана
 - `GET /api/tickets` — список (оператор: только назначенные на него; админ: все)
 - `POST /api/tickets`, `GET/PATCH /api/tickets/{id}`, `POST /api/tickets/{id}/assign` (назначение — только admin)
+- `GET /api/tickets/filter` — период, тег, серийник; у admin ещё `manager` (нужен хотя бы один параметр)
+- `GET /api/users` — клиенты MAX для ручного создания заявки
+- `GET /api/staff` — краткий список сотрудников (только admin, для фильтра по исполнителю)
 
 Миграция `V2` добавляет двух демо-клиентов MAX и заявки (видны администратору; оператору — после назначения).
 
