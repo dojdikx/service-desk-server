@@ -7,6 +7,7 @@ import com.servicedesk.server.util.detectPrinterModelCode
 import com.servicedesk.server.util.normalizeSerialNumber
 import com.servicedesk.server.util.normalizeSerialSearch
 import java.time.Instant
+import java.time.LocalDate
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import kotlinx.coroutines.Dispatchers
@@ -173,6 +174,25 @@ class ExposedTicketRepository : TicketRepository {
                 request.contactPhone?.let { row[contactPhone] = it }
                 request.externalExportUrl?.let { row[externalExportUrl] = it }
                 request.assignedTo?.let { row[assignedTo] = it }
+                request.serviceType?.let { row[serviceType] = it }
+                request.serviceTime?.let { raw ->
+                    row[serviceTime] = LocalDate.parse(raw)
+                }
+                request.replenishmentRequirement?.let { row[replenishmentRequirement] = it }
+                request.serviceChannel?.let { row[serviceChannel] = stringListToJson(it) }
+                request.serviceSolution?.let { row[serviceSolution] = it }
+                request.warrantyStatus?.let { row[warrantyStatus] = it }
+                request.issueType?.let { row[issueType] = it }
+                request.subIssueType?.let { row[subIssueType] = it }
+                request.thirdIssueType?.let { row[thirdIssueType] = it }
+                request.qtyUsed?.let { row[qtyUsed] = it }
+                request.replacementQty?.let { row[replacementQty] = it }
+                request.replenishmentQty?.let { row[replenishmentQty] = it }
+                request.skuRemark?.let { row[skuRemark] = it }
+                request.extraSerialNumber?.let { row[extraSerialNumber] = normalizeSerialNumber(it) }
+                request.purchaseOrderId?.let { row[purchaseOrderId] = it }
+                request.productType?.let { row[productType] = it }
+                request.replacementParts?.let { row[replacementParts] = replacementPartsDtoToJson(it) }
             }
 
             TicketsTable
@@ -259,6 +279,23 @@ class ExposedTicketRepository : TicketRepository {
             externalExportUrl = this[TicketsTable.externalExportUrl],
             assignedTo = this[TicketsTable.assignedTo],
             maxUserId = this[TicketsTable.maxUserId],
+            serviceType = this[TicketsTable.serviceType],
+            serviceTime = localDateToApiString(this[TicketsTable.serviceTime]),
+            replenishmentRequirement = this[TicketsTable.replenishmentRequirement],
+            serviceChannel = parseStringListJson(this[TicketsTable.serviceChannel]),
+            serviceSolution = this[TicketsTable.serviceSolution],
+            warrantyStatus = this[TicketsTable.warrantyStatus],
+            issueType = this[TicketsTable.issueType],
+            subIssueType = this[TicketsTable.subIssueType],
+            thirdIssueType = this[TicketsTable.thirdIssueType],
+            qtyUsed = this[TicketsTable.qtyUsed],
+            replacementQty = this[TicketsTable.replacementQty],
+            replenishmentQty = this[TicketsTable.replenishmentQty],
+            skuRemark = this[TicketsTable.skuRemark],
+            extraSerialNumber = this[TicketsTable.extraSerialNumber],
+            purchaseOrderId = this[TicketsTable.purchaseOrderId],
+            productType = this[TicketsTable.productType],
+            replacementParts = parseReplacementPartsForApi(this[TicketsTable.replacementParts]),
         )
     }
 }

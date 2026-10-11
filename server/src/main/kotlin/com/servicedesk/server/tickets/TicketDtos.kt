@@ -1,9 +1,11 @@
 package com.servicedesk.server.tickets
 
+import java.time.LocalDate
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.jsonArray
 
@@ -42,6 +44,13 @@ data class TicketCreateRequest(
 )
 
 @Serializable
+data class ReplacementPartDto(
+    val sku: String? = null,
+    val qty: Int? = null,
+    val remark: String? = null,
+)
+
+@Serializable
 data class TicketPatchRequest(
     val status: String? = null,
     val tags: List<String>? = null,
@@ -59,6 +68,23 @@ data class TicketPatchRequest(
     val contactPhone: String? = null,
     val externalExportUrl: String? = null,
     val assignedTo: Int? = null,
+    val serviceType: String? = null,
+    val serviceTime: String? = null,
+    val replenishmentRequirement: String? = null,
+    val serviceChannel: List<String>? = null,
+    val serviceSolution: String? = null,
+    val warrantyStatus: String? = null,
+    val issueType: String? = null,
+    val subIssueType: String? = null,
+    val thirdIssueType: String? = null,
+    val qtyUsed: Int? = null,
+    val replacementQty: Int? = null,
+    val replenishmentQty: Int? = null,
+    val skuRemark: String? = null,
+    val extraSerialNumber: String? = null,
+    val purchaseOrderId: String? = null,
+    val productType: String? = null,
+    val replacementParts: List<ReplacementPartDto>? = null,
 )
 
 @Serializable
@@ -89,6 +115,23 @@ data class TicketDetailDto(
     val externalExportUrl: String? = null,
     val assignedTo: Int? = null,
     val maxUserId: Long? = null,
+    val serviceType: String? = null,
+    val serviceTime: String? = null,
+    val replenishmentRequirement: String? = null,
+    val serviceChannel: List<String>? = null,
+    val serviceSolution: String? = null,
+    val warrantyStatus: String? = null,
+    val issueType: String? = null,
+    val subIssueType: String? = null,
+    val thirdIssueType: String? = null,
+    val qtyUsed: Int? = null,
+    val replacementQty: Int? = null,
+    val replenishmentQty: Int? = null,
+    val skuRemark: String? = null,
+    val extraSerialNumber: String? = null,
+    val purchaseOrderId: String? = null,
+    val productType: String? = null,
+    val replacementParts: List<ReplacementPartDto>? = null,
 )
 
 private val tagsJson = Json { ignoreUnknownKeys = true }
@@ -103,3 +146,15 @@ fun parseTagsJson(raw: String?): List<String>? {
 
 fun tagsToJson(tags: List<String>?): String =
     tagsJson.encodeToString(ListSerializer(String.serializer()), tags ?: emptyList())
+
+fun parseReplacementPartsForApi(raw: String?): List<ReplacementPartDto>? {
+    if (raw.isNullOrBlank() || raw == "null") return emptyList()
+    return runCatching {
+        tagsJson.decodeFromString(ListSerializer(ReplacementPartDto.serializer()), raw)
+    }.getOrElse { emptyList() }
+}
+
+fun replacementPartsDtoToJson(parts: List<ReplacementPartDto>?): String =
+    tagsJson.encodeToString(ListSerializer(ReplacementPartDto.serializer()), parts ?: emptyList())
+
+fun localDateToApiString(date: LocalDate?): String? = date?.toString()
