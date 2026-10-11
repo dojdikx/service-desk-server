@@ -10,6 +10,13 @@ import com.servicedesk.server.plugins.configureAuth
 import com.servicedesk.server.plugins.configureFlyway
 import com.servicedesk.server.plugins.configureMonitoring
 import com.servicedesk.server.plugins.configureRouting
+import com.servicedesk.server.messages.ExposedMessageRepository
+import com.servicedesk.server.messages.GetTicketMessagesBeforeUseCase
+import com.servicedesk.server.messages.GetTicketMessagesPreviewUseCase
+import com.servicedesk.server.messages.ListTicketDialogsUseCase
+import com.servicedesk.server.messages.MarkTicketReadUseCase
+import com.servicedesk.server.messages.SendTicketMessageUseCase
+import com.servicedesk.server.messages.configureMessageRoutes
 import com.servicedesk.server.staff.ExposedStaffDirectoryRepository
 import com.servicedesk.server.staff.configureStaffDirectoryRoutes
 import com.servicedesk.server.tickets.AssignTicketUseCase
@@ -77,7 +84,8 @@ fun Application.module() {
         getCurrentStaffUseCase = GetCurrentStaffUseCase(staffAuthRepository),
     )
 
-    val ticketRepository = ExposedTicketRepository()
+    val messageRepository = ExposedMessageRepository()
+    val ticketRepository = ExposedTicketRepository(messageRepository)
     configureTicketRoutes(
         listTicketsUseCase = ListTicketsUseCase(ticketRepository),
         filterTicketsUseCase = FilterTicketsUseCase(ticketRepository),
@@ -85,6 +93,13 @@ fun Application.module() {
         createTicketUseCase = CreateTicketUseCase(ticketRepository),
         patchTicketUseCase = PatchTicketUseCase(ticketRepository),
         assignTicketUseCase = AssignTicketUseCase(ticketRepository),
+        markTicketReadUseCase = MarkTicketReadUseCase(ticketRepository, messageRepository),
+    )
+    configureMessageRoutes(
+        previewUseCase = GetTicketMessagesPreviewUseCase(ticketRepository, messageRepository),
+        beforeUseCase = GetTicketMessagesBeforeUseCase(ticketRepository, messageRepository),
+        sendUseCase = SendTicketMessageUseCase(ticketRepository, messageRepository),
+        dialogsUseCase = ListTicketDialogsUseCase(messageRepository),
     )
 
     configureUserRoutes(ExposedUserRepository())

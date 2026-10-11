@@ -36,7 +36,9 @@ interface TicketRepository {
     suspend fun isAssignedTo(ticketId: Int, staffId: Int): Boolean
 }
 
-class ExposedTicketRepository : TicketRepository {
+class ExposedTicketRepository(
+    private val messageRepository: com.servicedesk.server.messages.MessageRepository? = null,
+) : TicketRepository {
 
     override suspend fun listShort(session: StaffSession): List<TicketShortDto> =
         newSuspendedTransaction(Dispatchers.IO) {
@@ -45,7 +47,11 @@ class ExposedTicketRepository : TicketRepository {
             } else {
                 TicketsTable.assignedTo eq session.staffId
             }
-            queryShortTickets(scope).map { row -> row.toShortDto() }
+            buildList {
+                queryShortTickets(scope).forEach { row ->
+                    add(enrichUnread(row.toShortDto(), session))
+                }
+            }
         }
 
     override suspend fun filterShort(session: StaffSession, params: TicketFilterParams): List<TicketShortDto> =
@@ -82,8 +88,23 @@ class ExposedTicketRepository : TicketRepository {
             }
 
             val combined = filters.fold(scope) { acc, op -> acc and op }
-            queryShortTickets(combined).map { it.toShortDto() }
+            buildList {
+                queryShortTickets(combined).forEach { row ->
+                    add(enrichUnread(row.toShortDto(), session))
+                }
+            }
         }
+
+    private suspend fun enrichUnread(short: TicketShortDto, session: StaffSession): TicketShortDto {
+        if (messageRepository == null) {
+            return short
+        }
+        var result = short.copy(lastMessage = messageRepository.lastMessageText(short.ticketId))
+        if (short.assignedTo == session.staffId) {
+            result = result.copy(unreadCount = messageRepository.unreadCount(session.staffId, short.ticketId))
+        }
+        return result
+    }
 
     private fun queryShortTickets(where: Op<Boolean>) =
         TicketsTable
@@ -251,6 +272,8 @@ class ExposedTicketRepository : TicketRepository {
             assigneeName = assigneeName,
             unreadCount = 0,
             serialNumber = this[TicketsTable.serialNumber],
+            contactPhone = this[TicketsTable.contactPhone],
+            reason = this[TicketsTable.reason],
         )
     }
 

@@ -23,6 +23,7 @@ fun Application.configureTicketRoutes(
     createTicketUseCase: CreateTicketUseCase,
     patchTicketUseCase: PatchTicketUseCase,
     assignTicketUseCase: AssignTicketUseCase,
+    markTicketReadUseCase: com.servicedesk.server.messages.MarkTicketReadUseCase,
 ) {
     routing {
         authenticate("auth-jwt") {
@@ -34,6 +35,7 @@ fun Application.configureTicketRoutes(
                     createTicketUseCase,
                     patchTicketUseCase,
                     assignTicketUseCase,
+                    markTicketReadUseCase,
                 )
             }
         }
@@ -47,6 +49,7 @@ private fun Route.ticketRoutes(
     createTicketUseCase: CreateTicketUseCase,
     patchTicketUseCase: PatchTicketUseCase,
     assignTicketUseCase: AssignTicketUseCase,
+    markTicketReadUseCase: com.servicedesk.server.messages.MarkTicketReadUseCase,
 ) {
     get("/columns") {
         call.respond(TicketColumnsConfig.columnsResponse())
@@ -159,6 +162,20 @@ private fun Route.ticketRoutes(
                 HttpStatusCode.NotFound,
                 mapOf("message" to "Заявка не найдена", "code" to "TICKET_NOT_FOUND"),
             )
+        } catch (_: TicketAccessDeniedException) {
+            call.respond(HttpStatusCode.Forbidden, mapOf("code" to "FORBIDDEN"))
+        }
+    }
+
+    post("/{ticketId}/read") {
+        val session = call.staffSession() ?: return@post call.respond(HttpStatusCode.Unauthorized)
+        val id = call.parameters["ticketId"]?.toIntOrNull()
+            ?: return@post call.respond(HttpStatusCode.BadRequest, mapOf("code" to "INVALID_ID"))
+        try {
+            markTicketReadUseCase.execute(id, session)
+            call.respond(HttpStatusCode.OK, mapOf("status" to "ok"))
+        } catch (_: TicketNotFoundException) {
+            call.respond(HttpStatusCode.NotFound, mapOf("code" to "TICKET_NOT_FOUND"))
         } catch (_: TicketAccessDeniedException) {
             call.respond(HttpStatusCode.Forbidden, mapOf("code" to "FORBIDDEN"))
         }

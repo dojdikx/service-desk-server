@@ -23,6 +23,8 @@ data class TicketShortDto(
     val assigneeName: String? = null,
     val unreadCount: Int = 0,
     val serialNumber: String? = null,
+    val contactPhone: String? = null,
+    val reason: String? = null,
 )
 
 @Serializable
