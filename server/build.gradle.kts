@@ -30,6 +30,7 @@ dependencies {
     implementation("org.flywaydb:flyway-database-postgresql:10.21.0")
 
     implementation("ch.qos.logback:logback-classic:1.5.12")
+    implementation("org.apache.poi:poi-ooxml:5.2.5")
 
     testImplementation("io.ktor:ktor-server-tests-jvm")
     testImplementation("io.ktor:ktor-server-test-host-jvm")

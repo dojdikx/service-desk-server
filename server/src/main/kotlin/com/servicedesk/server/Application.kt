@@ -21,6 +21,10 @@ import com.servicedesk.server.messages.SendTicketMessageUseCase
 import com.servicedesk.server.media.MediaStorage
 import com.servicedesk.server.media.configureMediaRoutes
 import com.servicedesk.server.messages.configureMessageRoutes
+import com.servicedesk.server.analytics.AnalyticsReportStorage
+import com.servicedesk.server.analytics.ExposedAnalyticsRepository
+import com.servicedesk.server.analytics.GetAnalyticsUseCase
+import com.servicedesk.server.analytics.configureAnalyticsRoutes
 import com.servicedesk.server.realtime.RealtimeBroadcaster
 import com.servicedesk.server.realtime.RealtimeNotifier
 import com.servicedesk.server.realtime.configureRealtimeWebSockets
@@ -136,6 +140,13 @@ fun Application.module() {
             realtimeNotifier,
         ),
         dialogsUseCase = ListTicketDialogsUseCase(messageRepository),
+    )
+
+    val analyticsStorage = AnalyticsReportStorage()
+    val analyticsRepository = ExposedAnalyticsRepository()
+    configureAnalyticsRoutes(
+        getAnalyticsUseCase = GetAnalyticsUseCase(analyticsRepository, analyticsStorage),
+        storage = analyticsStorage,
     )
 
     configureUserRoutes(ExposedUserRepository())

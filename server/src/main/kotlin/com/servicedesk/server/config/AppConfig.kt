@@ -27,4 +27,6 @@ object AppConfig {
     val jwtSecret: String = System.getenv("JWT_SECRET") ?: "service-desk-dev-secret"
 
     val mediaStoragePath: String = System.getenv("MEDIA_STORAGE_PATH") ?: "data/media"
+
+    val analyticsStoragePath: String = System.getenv("ANALYTICS_STORAGE_PATH") ?: "data/analytics"
 }

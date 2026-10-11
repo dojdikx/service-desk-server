@@ -68,6 +68,8 @@ docker exec -it service-desk-db psql -U servicedesk_user -d servicedesk -c "\dt"
 - `POST /api/media/upload` (multipart), `GET /api/media/{storageKey}` — вложения чата
 - `WS /api/ws/tickets/{id}?token=<jwt>` — события чата (`message.new`, `message.delivery`)
 - `WS /api/ws/staff?token=<jwt>` — активность диалогов (`dialog.activity`, счётчик непрочитанных)
+- `POST /api/analytics` — отчёт за период (JSON или `excel: true` → `excelPath`)
+- `GET /api/analytics/files/{fileName}` — скачать сгенерированный Excel
 
 Миграция `V2` добавляет двух демо-клиентов MAX и заявки (видны администратору; оператору — после назначения).
 
